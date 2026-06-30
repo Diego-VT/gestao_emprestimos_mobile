@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../core/utils/api_exception.dart';
 import '../models/solicitacao.dart';
-import '../services/api_service.dart';
+import '../repositories/solicitacao_repository.dart';
 
 class DetalheSolicitacaoScreen extends StatefulWidget {
   const DetalheSolicitacaoScreen({super.key});
@@ -14,13 +15,13 @@ class DetalheSolicitacaoScreen extends StatefulWidget {
 }
 
 class _DetalheSolicitacaoScreenState extends State<DetalheSolicitacaoScreen> {
-  final _apiService = ApiService();
-  Future<Solicitacao?>? _solicitacaoFuture;
+  final _solicitacaoRepository = SolicitacaoRepository();
+  Future<Solicitacao>? _solicitacaoFuture;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _solicitacaoFuture ??= _apiService.obterSolicitacao(
+    _solicitacaoFuture ??= _solicitacaoRepository.obterPorId(
       ModalRoute.of(context)!.settings.arguments as int,
     );
   }
@@ -29,18 +30,26 @@ class _DetalheSolicitacaoScreenState extends State<DetalheSolicitacaoScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Detalhe da Solicitacao')),
-      body: FutureBuilder<Solicitacao?>(
+      body: FutureBuilder<Solicitacao>(
         future: _solicitacaoFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final solicitacao = snapshot.data;
-
-          if (solicitacao == null) {
-            return const Center(child: Text('Solicitacao nao encontrada.'));
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  _mensagemErro(snapshot.error),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
           }
+
+          final solicitacao = snapshot.data!;
 
           return ListView(
             padding: const EdgeInsets.all(16),
@@ -86,6 +95,13 @@ class _DetalheSolicitacaoScreenState extends State<DetalheSolicitacaoScreen> {
     final dia = data.day.toString().padLeft(2, '0');
     final mes = data.month.toString().padLeft(2, '0');
     return '$dia/$mes/${data.year}';
+  }
+
+  String _mensagemErro(Object? error) {
+    if (error is ApiException) {
+      return error.message;
+    }
+    return 'Nao foi possivel carregar a solicitacao.';
   }
 }
 

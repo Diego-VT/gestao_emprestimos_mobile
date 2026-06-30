@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../services/api_service.dart';
+import '../core/utils/api_exception.dart';
+import '../core/utils/input_validators.dart';
+import '../repositories/solicitacao_repository.dart';
 
 class NovaSolicitacaoScreen extends StatefulWidget {
   const NovaSolicitacaoScreen({super.key});
@@ -15,7 +17,7 @@ class _NovaSolicitacaoScreenState extends State<NovaSolicitacaoScreen> {
   final _formKey = GlobalKey<FormState>();
   final _equipamentoController = TextEditingController();
   final _justificativaController = TextEditingController();
-  final _apiService = ApiService();
+  final _solicitacaoRepository = SolicitacaoRepository();
 
   bool _enviando = false;
 
@@ -33,21 +35,33 @@ class _NovaSolicitacaoScreenState extends State<NovaSolicitacaoScreen> {
 
     setState(() => _enviando = true);
 
-    await _apiService.criarSolicitacao(
-      equipamento: _equipamentoController.text.trim(),
-      justificativa: _justificativaController.text.trim(),
-    );
+    try {
+      await _solicitacaoRepository.criar(
+        equipamento: _equipamentoController.text.trim(),
+        justificativa: _justificativaController.text.trim(),
+      );
 
-    if (!mounted) {
-      return;
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Solicitacao enviada com sucesso.')),
+      );
+      Navigator.pop(context, true);
+    } on ApiException catch (erro) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_mensagemEnvio(erro))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _enviando = false);
+      }
     }
-
-    setState(() => _enviando = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Solicitacao enviada com sucesso.')),
-    );
-    Navigator.pop(context);
   }
 
   @override
@@ -68,12 +82,11 @@ class _NovaSolicitacaoScreenState extends State<NovaSolicitacaoScreen> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.computer),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Informe o equipamento.';
-                  }
-                  return null;
-                },
+                validator: (value) => InputValidators.textoObrigatorio(
+                  value,
+                  nomeCampo: 'o equipamento',
+                  maxLength: 120,
+                ),
               ),
               const SizedBox(height: 16),
               TextFormField(
@@ -86,12 +99,11 @@ class _NovaSolicitacaoScreenState extends State<NovaSolicitacaoScreen> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.description_outlined),
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Informe a justificativa.';
-                  }
-                  return null;
-                },
+                validator: (value) => InputValidators.textoObrigatorio(
+                  value,
+                  nomeCampo: 'a justificativa',
+                  maxLength: 500,
+                ),
               ),
               const SizedBox(height: 24),
               FilledButton.icon(
@@ -110,5 +122,12 @@ class _NovaSolicitacaoScreenState extends State<NovaSolicitacaoScreen> {
         ),
       ),
     );
+  }
+
+  String _mensagemEnvio(ApiException erro) {
+    if (erro.statusCode == 401 || erro.statusCode == 403) {
+      return 'Voce nao tem permissao para enviar esta solicitacao.';
+    }
+    return 'Nao foi possivel enviar a solicitacao. Tente novamente.';
   }
 }

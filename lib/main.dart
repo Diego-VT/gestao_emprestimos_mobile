@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/utils/auth_gate.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/detalhe_solicitacao_screen.dart';
 import 'screens/login_screen.dart';
@@ -23,7 +24,7 @@ class GestaoEmprestimosApp extends StatelessWidget {
         useMaterial3: true,
         appBarTheme: const AppBarTheme(centerTitle: true),
       ),
-      initialRoute: LoginScreen.routeName,
+      home: const AuthGate(),
       routes: {
         LoginScreen.routeName: (context) => const LoginScreen(),
         DashboardScreen.routeName: (context) => const DashboardScreen(),

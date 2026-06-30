@@ -93,7 +93,7 @@ Com isso, as telas conseguem exibir mensagens mais claras ao usuário e o códig
 
 ## 7. Persistência de Sessão
 
-Foi adicionado o serviço `TokenStorageService`, utilizando `shared_preferences` para salvar localmente:
+Foi adicionado o serviço `TokenStorageService`, utilizando `flutter_secure_storage` para salvar localmente:
 
 - token de autenticação;
 - dados do usuário logado.
@@ -169,13 +169,13 @@ Também foi criado o modelo `AuthResponse`, responsável por representar a respo
 Foram adicionadas as dependências:
 
 - `http`: usada para comunicação com a API REST;
-- `shared_preferences`: usada para persistência local da sessão.
+- `flutter_secure_storage`: usada para persistência segura da sessão.
 
 Essas bibliotecas permitem substituir a simulação local por um fluxo real de comunicação e autenticação.
 
 ## 14. Ajustes nos Testes
 
-O teste de widget foi ajustado para inicializar valores simulados do `SharedPreferences`.
+O teste de widget foi ajustado para inicializar valores simulados do `FlutterSecureStorage`.
 
 Também foi adicionado `pumpAndSettle()` para aguardar o `AuthGate` concluir a verificação assíncrona da sessão antes das validações da tela de login.
 

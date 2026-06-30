@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../services/api_service.dart';
+import '../core/utils/api_exception.dart';
+import '../core/utils/input_validators.dart';
+import '../repositories/auth_repository.dart';
 import 'dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
-  static const routeName = '/';
+  static const routeName = '/login';
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -14,9 +16,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'cliente@uab.edu');
-  final _senhaController = TextEditingController(text: '123456');
-  final _apiService = ApiService();
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
+  final _authRepository = AuthRepository();
 
   bool _carregando = false;
 
@@ -34,25 +36,30 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _carregando = true);
 
-    final usuario = await _apiService.login(
-      email: _emailController.text.trim(),
-      senha: _senhaController.text,
-    );
-
-    if (!mounted) {
-      return;
-    }
-
-    setState(() => _carregando = false);
-
-    if (usuario == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('E-mail ou senha invalidos.')),
+    try {
+      await _authRepository.login(
+        email: _emailController.text.trim(),
+        senha: _senhaController.text,
       );
-      return;
-    }
 
-    Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.pushReplacementNamed(context, DashboardScreen.routeName);
+    } on ApiException catch (erro) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_mensagemLogin(erro))),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _carregando = false);
+      }
+    }
   }
 
   @override
@@ -96,15 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Informe o e-mail.';
-                        }
-                        if (!value.contains('@')) {
-                          return 'Informe um e-mail valido.';
-                        }
-                        return null;
-                      },
+                      validator: InputValidators.email,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -115,12 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Informe a senha.';
-                        }
-                        return null;
-                      },
+                      validator: InputValidators.senha,
                     ),
                     const SizedBox(height: 24),
                     FilledButton.icon(
@@ -142,5 +136,12 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  String _mensagemLogin(ApiException erro) {
+    if (erro.statusCode == 401 || erro.statusCode == 403) {
+      return 'E-mail ou senha invalidos.';
+    }
+    return 'Nao foi possivel entrar. Tente novamente.';
   }
 }

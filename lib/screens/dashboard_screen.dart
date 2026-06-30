@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../repositories/auth_repository.dart';
+import 'login_screen.dart';
 import 'nova_solicitacao_screen.dart';
 import 'solicitacoes_screen.dart';
 
@@ -16,7 +18,7 @@ class DashboardScreen extends StatelessWidget {
         actions: [
           IconButton(
             tooltip: 'Sair',
-            onPressed: () => Navigator.pushReplacementNamed(context, '/'),
+            onPressed: () => _sair(context),
             icon: const Icon(Icons.logout),
           ),
         ],
@@ -64,6 +66,16 @@ class DashboardScreen extends StatelessWidget {
         content: Text('Funcionalidade preparada para proxima etapa.'),
       ),
     );
+  }
+
+  Future<void> _sair(BuildContext context) async {
+    await AuthRepository().logout();
+
+    if (!context.mounted) {
+      return;
+    }
+
+    Navigator.pushReplacementNamed(context, LoginScreen.routeName);
   }
 }
 
