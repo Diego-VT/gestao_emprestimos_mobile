@@ -1,40 +1,49 @@
 import '../core/utils/api_exception.dart';
-import '../models/auth_response.dart';
 import '../models/usuario.dart';
-import '../services/api_service.dart';
 import '../services/token_storage_service.dart';
 
 class AuthRepository {
-  AuthRepository({
-    ApiService? apiService,
-    TokenStorageService? tokenStorageService,
-  })  : _apiService = apiService ?? ApiService(),
-        _tokenStorageService = tokenStorageService ?? TokenStorageService();
+  AuthRepository({TokenStorageService? tokenStorageService})
+    : _tokenStorageService = tokenStorageService ?? TokenStorageService();
 
-  final ApiService _apiService;
   final TokenStorageService _tokenStorageService;
 
-  Future<Usuario> login({
-    required String email,
-    required String senha,
-  }) async {
-    final response = await _apiService.login(email: email, senha: senha);
+  static const _usuarios = <String, Usuario>{
+    'cliente@uab.edu': Usuario(
+      id: 1,
+      nome: 'Cliente UAB',
+      email: 'cliente@uab.edu',
+      perfil: 'Cliente',
+    ),
+    'atendente@uab.edu': Usuario(
+      id: 2,
+      nome: 'Atendente UAB',
+      email: 'atendente@uab.edu',
+      perfil: 'Atendente',
+    ),
+    'admin@uab.edu': Usuario(
+      id: 3,
+      nome: 'Administrador UAB',
+      email: 'admin@uab.edu',
+      perfil: 'Administrador',
+    ),
+  };
 
-    if (response is! Map<String, dynamic>) {
-      throw const ApiException(message: 'Resposta de login invalida.');
-    }
-
-    final authResponse = AuthResponse.fromJson(response);
-    if (authResponse.token.isEmpty) {
-      throw const ApiException(message: 'Token JWT nao retornado pela API.');
+  Future<Usuario> login({required String email, required String senha}) async {
+    final usuario = _usuarios[email.toLowerCase()];
+    if (usuario == null || senha != '123456') {
+      throw const ApiException(
+        statusCode: 401,
+        message: 'E-mail ou senha invalidos.',
+      );
     }
 
     await _tokenStorageService.salvarSessao(
-      token: authResponse.token,
-      usuario: authResponse.usuario,
+      token: 'token-local-${usuario.id}',
+      usuario: usuario,
     );
 
-    return authResponse.usuario;
+    return usuario;
   }
 
   Future<bool> existeSessao() {

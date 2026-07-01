@@ -1,26 +1,32 @@
 import '../core/utils/api_exception.dart';
 import '../models/usuario.dart';
-import '../services/api_service.dart';
 import 'auth_repository.dart';
 
 class UsuarioRepository {
-  UsuarioRepository({
-    ApiService? apiService,
-    AuthRepository? authRepository,
-  })  : _apiService = apiService ?? ApiService(),
-        _authRepository = authRepository ?? AuthRepository();
+  UsuarioRepository({AuthRepository? authRepository})
+    : _authRepository = authRepository ?? AuthRepository();
 
-  final ApiService _apiService;
   final AuthRepository _authRepository;
+
+  static final List<Usuario> _usuarios = [
+    const Usuario(
+      id: 2,
+      nome: 'Atendente UAB',
+      email: 'atendente@uab.edu',
+      perfil: 'Atendente',
+    ),
+    const Usuario(
+      id: 3,
+      nome: 'Administrador UAB',
+      email: 'admin@uab.edu',
+      perfil: 'Administrador',
+    ),
+  ];
 
   Future<List<Usuario>> listarAtendentes() async {
     await _exigirAdministrador();
-    final response = await _apiService.listarUsuarios();
-    final lista = _extrairLista(response);
 
-    return lista
-        .whereType<Map<String, dynamic>>()
-        .map(Usuario.fromJson)
+    return _usuarios
         .where((usuario) => usuario.perfil.toLowerCase() == 'atendente')
         .toList();
   }
@@ -31,14 +37,15 @@ class UsuarioRepository {
     required String senha,
   }) async {
     await _exigirAdministrador();
-    final response = await _apiService.criarUsuario({
-      'nome': nome,
-      'email': email,
-      'senha': senha,
-      'perfil': 'Atendente',
-    });
+    final usuario = Usuario(
+      id: _proximoId(),
+      nome: nome,
+      email: email,
+      perfil: 'Atendente',
+    );
 
-    return Usuario.fromJson(_extrairObjeto(response));
+    _usuarios.add(usuario);
+    return usuario;
   }
 
   Future<Usuario> atualizarAtendente({
@@ -47,21 +54,25 @@ class UsuarioRepository {
     required String email,
   }) async {
     await _exigirAdministrador();
-    final response = await _apiService.atualizarUsuario(
+    final index = _usuarios.indexWhere((usuario) => usuario.id == id);
+    if (index == -1) {
+      throw const ApiException(message: 'Usuario nao encontrado.');
+    }
+
+    final usuario = Usuario(
       id: id,
-      usuario: {
-        'nome': nome,
-        'email': email,
-        'perfil': 'Atendente',
-      },
+      nome: nome,
+      email: email,
+      perfil: 'Atendente',
     );
 
-    return Usuario.fromJson(_extrairObjeto(response));
+    _usuarios[index] = usuario;
+    return usuario;
   }
 
   Future<void> remover(int id) async {
     await _exigirAdministrador();
-    await _apiService.removerUsuario(id);
+    _usuarios.removeWhere((usuario) => usuario.id == id);
   }
 
   Future<void> _exigirAdministrador() async {
@@ -74,32 +85,13 @@ class UsuarioRepository {
     }
   }
 
-  List<dynamic> _extrairLista(dynamic response) {
-    if (response is List<dynamic>) {
-      return response;
+  int _proximoId() {
+    if (_usuarios.isEmpty) {
+      return 1;
     }
-
-    if (response is Map<String, dynamic>) {
-      final lista =
-          response['data'] ?? response['usuarios'] ?? response['items'];
-
-      if (lista is List<dynamic>) {
-        return lista;
-      }
-    }
-
-    throw const ApiException(message: 'Lista de usuarios invalida.');
-  }
-
-  Map<String, dynamic> _extrairObjeto(dynamic response) {
-    if (response is Map<String, dynamic>) {
-      final data = response['data'] ?? response['usuario'];
-      if (data is Map<String, dynamic>) {
-        return data;
-      }
-      return response;
-    }
-
-    throw const ApiException(message: 'Usuario invalido.');
+    return _usuarios
+            .map((usuario) => usuario.id)
+            .reduce((maior, id) => id > maior ? id : maior) +
+        1;
   }
 }

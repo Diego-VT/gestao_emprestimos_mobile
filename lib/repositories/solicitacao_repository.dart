@@ -1,69 +1,77 @@
 import '../core/utils/api_exception.dart';
 import '../models/solicitacao.dart';
-import '../services/api_service.dart';
+import 'auth_repository.dart';
 
 class SolicitacaoRepository {
-  SolicitacaoRepository({ApiService? apiService})
-      : _apiService = apiService ?? ApiService();
+  SolicitacaoRepository({AuthRepository? authRepository})
+    : _authRepository = authRepository ?? AuthRepository();
 
-  final ApiService _apiService;
+  final AuthRepository _authRepository;
+
+  static final List<Solicitacao> _solicitacoes = [
+    Solicitacao(
+      id: 1,
+      equipamento: 'Notebook Dell Latitude',
+      solicitante: 'Cliente UAB',
+      status: 'Pendente',
+      dataSolicitacao: DateTime(2026, 6, 28),
+      justificativa: 'Uso em apresentacao de trabalho academico.',
+    ),
+    Solicitacao(
+      id: 2,
+      equipamento: 'Projetor Epson',
+      solicitante: 'Cliente UAB',
+      status: 'Aprovada',
+      dataSolicitacao: DateTime(2026, 6, 25),
+      justificativa: 'Apoio para aula pratica em laboratorio.',
+    ),
+    Solicitacao(
+      id: 3,
+      equipamento: 'Tablet Samsung',
+      solicitante: 'Atendente UAB',
+      status: 'Em analise',
+      dataSolicitacao: DateTime(2026, 6, 20),
+      justificativa: 'Registro de presenca em evento institucional.',
+    ),
+  ];
 
   Future<List<Solicitacao>> listar() async {
-    final response = await _apiService.listarSolicitacoes();
-    final lista = _extrairLista(response);
-
-    return lista
-        .whereType<Map<String, dynamic>>()
-        .map(Solicitacao.fromJson)
-        .toList();
+    return List<Solicitacao>.unmodifiable(_solicitacoes);
   }
 
   Future<Solicitacao> obterPorId(int id) async {
-    final response = await _apiService.obterSolicitacao(id);
-    final json = _extrairObjeto(response);
-    return Solicitacao.fromJson(json);
+    try {
+      return _solicitacoes.firstWhere((solicitacao) => solicitacao.id == id);
+    } on StateError {
+      throw const ApiException(message: 'Solicitacao nao encontrada.');
+    }
   }
 
   Future<Solicitacao> criar({
     required String equipamento,
     required String justificativa,
   }) async {
-    final response = await _apiService.criarSolicitacao(
+    final usuario = await _authRepository.obterUsuarioLogado();
+    final solicitacao = Solicitacao(
+      id: _proximoId(),
       equipamento: equipamento,
+      solicitante: usuario?.nome ?? 'Usuario local',
+      status: 'Pendente',
+      dataSolicitacao: DateTime.now(),
       justificativa: justificativa,
     );
-    final json = _extrairObjeto(response);
-    return Solicitacao.fromJson(json);
+
+    _solicitacoes.insert(0, solicitacao);
+    return solicitacao;
   }
 
-  List<dynamic> _extrairLista(dynamic response) {
-    if (response is List<dynamic>) {
-      return response;
+  int _proximoId() {
+    if (_solicitacoes.isEmpty) {
+      return 1;
     }
-
-    if (response is Map<String, dynamic>) {
-      final lista = response['data'] ??
-          response['solicitacoes'] ??
-          response['items'] ??
-          response['results'];
-
-      if (lista is List<dynamic>) {
-        return lista;
-      }
-    }
-
-    throw const ApiException(message: 'Lista de solicitacoes invalida.');
-  }
-
-  Map<String, dynamic> _extrairObjeto(dynamic response) {
-    if (response is Map<String, dynamic>) {
-      final data = response['data'] ?? response['solicitacao'];
-      if (data is Map<String, dynamic>) {
-        return data;
-      }
-      return response;
-    }
-
-    throw const ApiException(message: 'Solicitacao invalida.');
+    return _solicitacoes
+            .map((solicitacao) => solicitacao.id)
+            .reduce((maior, id) => id > maior ? id : maior) +
+        1;
   }
 }
