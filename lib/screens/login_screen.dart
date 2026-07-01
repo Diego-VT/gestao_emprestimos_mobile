@@ -63,10 +63,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _abrirAlterarSenha() async {
+  Future<void> _abrirEsqueceuSenha() async {
     final alterou = await showDialog<bool>(
       context: context,
-      builder: (context) => _AlterarSenhaDialog(
+      builder: (context) => _EsqueceuSenhaDialog(
         authRepository: _authRepository,
         emailInicial: _emailController.text.trim(),
       ),
@@ -78,13 +78,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
     _senhaController.clear();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Senha alterada com sucesso.')),
+      const SnackBar(content: Text('Senha redefinida com sucesso.')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    const azulCorporativo = Color(0xFF0F2A44);
+    const fundoTela = Color(0xFFF4F7FB);
+    const bordaCampo = Color(0xFFD7E0EA);
+    const textoSecundario = Color(0xFF607086);
+
     return Scaffold(
+      backgroundColor: fundoTela,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -96,47 +102,77 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 440),
                   child: Card(
+                    color: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
-                      side: BorderSide(
-                        color: Theme.of(context).colorScheme.outlineVariant,
-                      ),
+                      side: const BorderSide(color: Color(0xFFE4EAF2)),
                     ),
                     child: Padding(
-                      padding: EdgeInsets.all(compacto ? 20 : 28),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: compacto ? 20 : 28,
+                        vertical: compacto ? 24 : 32,
+                      ),
                       child: Form(
                         key: _formKey,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Icon(
-                              Icons.devices_other,
-                              size: compacto ? 56 : 72,
-                              color: Theme.of(context).colorScheme.primary,
+                            Center(
+                              child: Container(
+                                width: compacto ? 64 : 72,
+                                height: compacto ? 64 : 72,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEAF1F8),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.devices_other,
+                                  size: compacto ? 34 : 38,
+                                  color: azulCorporativo,
+                                ),
+                              ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 20),
                             Text(
                               'Gestao de Emprestimos',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.headlineSmall,
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    color: azulCorporativo,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               'Equipamentos de TI',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyLarge,
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(color: textoSecundario),
                             ),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 32),
                             TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               textInputAction: TextInputAction.next,
                               decoration: const InputDecoration(
                                 labelText: 'E-mail',
-                                border: OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Colors.white,
+                                prefixIconColor: textoSecundario,
                                 prefixIcon: Icon(Icons.email_outlined),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: bordaCampo),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: azulCorporativo,
+                                    width: 1.4,
+                                  ),
+                                ),
+                                errorBorder: OutlineInputBorder(),
+                                focusedErrorBorder: OutlineInputBorder(),
                               ),
                               validator: InputValidators.email,
                             ),
@@ -148,8 +184,21 @@ class _LoginScreenState extends State<LoginScreen> {
                               onFieldSubmitted: (_) => _entrar(),
                               decoration: InputDecoration(
                                 labelText: 'Senha',
-                                border: const OutlineInputBorder(),
+                                filled: true,
+                                fillColor: Colors.white,
+                                prefixIconColor: textoSecundario,
                                 prefixIcon: const Icon(Icons.lock_outline),
+                                enabledBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(color: bordaCampo),
+                                ),
+                                focusedBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: azulCorporativo,
+                                    width: 1.4,
+                                  ),
+                                ),
+                                errorBorder: const OutlineInputBorder(),
+                                focusedErrorBorder: const OutlineInputBorder(),
                                 suffixIcon: IconButton(
                                   tooltip: _senhaVisivel
                                       ? 'Ocultar senha'
@@ -163,6 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _senhaVisivel
                                         ? Icons.visibility_off_outlined
                                         : Icons.visibility_outlined,
+                                    color: textoSecundario,
                                   ),
                                 ),
                               ),
@@ -173,23 +223,42 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: TextButton(
                                 onPressed: _carregando
                                     ? null
-                                    : _abrirAlterarSenha,
+                                    : _abrirEsqueceuSenha,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: azulCorporativo,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 0,
+                                  ),
+                                ),
                                 child: const Text('Alterar senha'),
                               ),
                             ),
                             const SizedBox(height: 8),
-                            FilledButton.icon(
-                              onPressed: _carregando ? null : _entrar,
-                              icon: _carregando
-                                  ? const SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.login),
-                              label: const Text('Entrar'),
+                            SizedBox(
+                              height: 52,
+                              child: FilledButton.icon(
+                                onPressed: _carregando ? null : _entrar,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: azulCorporativo,
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor: azulCorporativo
+                                      .withValues(alpha: 0.45),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                icon: _carregando
+                                    ? const SizedBox(
+                                        height: 18,
+                                        width: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(Icons.login),
+                                label: const Text('Entrar'),
+                              ),
                             ),
                           ],
                         ),
@@ -213,8 +282,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class _AlterarSenhaDialog extends StatefulWidget {
-  const _AlterarSenhaDialog({
+class _EsqueceuSenhaDialog extends StatefulWidget {
+  const _EsqueceuSenhaDialog({
     required this.authRepository,
     required this.emailInicial,
   });
@@ -223,18 +292,16 @@ class _AlterarSenhaDialog extends StatefulWidget {
   final String emailInicial;
 
   @override
-  State<_AlterarSenhaDialog> createState() => _AlterarSenhaDialogState();
+  State<_EsqueceuSenhaDialog> createState() => _EsqueceuSenhaDialogState();
 }
 
-class _AlterarSenhaDialogState extends State<_AlterarSenhaDialog> {
+class _EsqueceuSenhaDialogState extends State<_EsqueceuSenhaDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _emailController;
-  final _senhaAtualController = TextEditingController();
   final _novaSenhaController = TextEditingController();
   final _confirmarSenhaController = TextEditingController();
 
   bool _salvando = false;
-  bool _senhaAtualVisivel = false;
   bool _novaSenhaVisivel = false;
   bool _confirmarSenhaVisivel = false;
 
@@ -247,7 +314,6 @@ class _AlterarSenhaDialogState extends State<_AlterarSenhaDialog> {
   @override
   void dispose() {
     _emailController.dispose();
-    _senhaAtualController.dispose();
     _novaSenhaController.dispose();
     _confirmarSenhaController.dispose();
     super.dispose();
@@ -261,9 +327,8 @@ class _AlterarSenhaDialogState extends State<_AlterarSenhaDialog> {
     setState(() => _salvando = true);
 
     try {
-      await widget.authRepository.alterarSenha(
+      await widget.authRepository.redefinirSenha(
         email: _emailController.text.trim(),
-        senhaAtual: _senhaAtualController.text,
         novaSenha: _novaSenhaController.text,
       );
 
@@ -290,7 +355,7 @@ class _AlterarSenhaDialogState extends State<_AlterarSenhaDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Alterar senha'),
+      title: const Text('Esqueceu a senha?'),
       content: SizedBox(
         width: 420,
         child: Form(
@@ -309,15 +374,6 @@ class _AlterarSenhaDialogState extends State<_AlterarSenhaDialog> {
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   validator: InputValidators.email,
-                ),
-                const SizedBox(height: 12),
-                _CampoSenha(
-                  controller: _senhaAtualController,
-                  labelText: 'Senha atual',
-                  visivel: _senhaAtualVisivel,
-                  onAlternarVisibilidade: () {
-                    setState(() => _senhaAtualVisivel = !_senhaAtualVisivel);
-                  },
                 ),
                 const SizedBox(height: 12),
                 _CampoSenha(
@@ -377,10 +433,7 @@ class _AlterarSenhaDialogState extends State<_AlterarSenhaDialog> {
     if (erro.statusCode == 404) {
       return 'Usuario nao encontrado.';
     }
-    if (erro.statusCode == 401) {
-      return 'Senha atual invalida.';
-    }
-    return 'Nao foi possivel alterar a senha.';
+    return 'Nao foi possivel redefinir a senha.';
   }
 }
 

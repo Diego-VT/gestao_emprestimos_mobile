@@ -14,7 +14,7 @@ class AuthRepository {
   final FlutterSecureStorage _secureStorage;
   final TokenStorageService _tokenStorageService;
 
-  static const _usuarios = <String, Usuario>{
+  static final Map<String, Usuario> _usuarios = {
     'cliente@uab.edu': Usuario(
       id: 1,
       nome: 'Cliente UAB',
@@ -53,6 +53,45 @@ class AuthRepository {
     ),
   };
 
+  static List<Usuario> get usuariosLocais {
+    final usuarios = _usuarios.values.toList()
+      ..sort((a, b) => a.nome.compareTo(b.nome));
+    return usuarios;
+  }
+
+  static bool existeUsuario(String email) {
+    return _usuarios.containsKey(email.toLowerCase());
+  }
+
+  static void cadastrarUsuarioLocal(Usuario usuario) {
+    _usuarios[usuario.email.toLowerCase()] = usuario;
+  }
+
+  static void atualizarUsuarioLocal({
+    required String emailAnterior,
+    required Usuario usuario,
+  }) {
+    final emailAnteriorNormalizado = emailAnterior.toLowerCase();
+    if (emailAnteriorNormalizado != usuario.email.toLowerCase()) {
+      _usuarios.remove(emailAnteriorNormalizado);
+    }
+    _usuarios[usuario.email.toLowerCase()] = usuario;
+  }
+
+  static void removerUsuarioLocal(int id) {
+    _usuarios.removeWhere((_, usuario) => usuario.id == id);
+  }
+
+  static int proximoUsuarioId() {
+    if (_usuarios.isEmpty) {
+      return 1;
+    }
+    return _usuarios.values
+            .map((usuario) => usuario.id)
+            .reduce((maior, id) => id > maior ? id : maior) +
+        1;
+  }
+
   Future<Usuario> login({required String email, required String senha}) async {
     final emailNormalizado = email.toLowerCase();
     final usuario = _usuarios[emailNormalizado];
@@ -71,6 +110,24 @@ class AuthRepository {
     );
 
     return usuario;
+  }
+
+  Future<void> redefinirSenha({
+    required String email,
+    required String novaSenha,
+  }) async {
+    final emailNormalizado = email.toLowerCase();
+    if (!_usuarios.containsKey(emailNormalizado)) {
+      throw const ApiException(
+        statusCode: 404,
+        message: 'Usuario nao encontrado.',
+      );
+    }
+
+    await _secureStorage.write(
+      key: _senhaKey(emailNormalizado),
+      value: novaSenha,
+    );
   }
 
   Future<void> alterarSenha({
@@ -98,6 +155,13 @@ class AuthRepository {
       key: _senhaKey(emailNormalizado),
       value: novaSenha,
     );
+  }
+
+  Future<void> definirSenhaUsuario({
+    required String email,
+    required String novaSenha,
+  }) {
+    return redefinirSenha(email: email, novaSenha: novaSenha);
   }
 
   Future<bool> existeSessao() {

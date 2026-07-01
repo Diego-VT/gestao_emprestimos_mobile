@@ -8,73 +8,62 @@ class UsuarioRepository {
 
   final AuthRepository _authRepository;
 
-  static final List<Usuario> _usuarios = [
-    const Usuario(
-      id: 1,
-      nome: 'Cliente UAB',
-      email: 'cliente@uab.edu',
-      perfil: 'Cliente',
-    ),
-    const Usuario(
-      id: 2,
-      nome: 'Atendente UAB',
-      email: 'atendente@uab.edu',
-      perfil: 'Atendente',
-    ),
-    const Usuario(
-      id: 3,
-      nome: 'Administrador UAB',
-      email: 'admin@uab.edu',
-      perfil: 'Administrador',
-    ),
-    const Usuario(
-      id: 4,
-      nome: 'Maria Souza',
-      email: 'maria@uab.edu',
-      perfil: 'Cliente',
-    ),
-    const Usuario(
-      id: 5,
-      nome: 'Joao Pereira',
-      email: 'joao@uab.edu',
-      perfil: 'Cliente',
-    ),
-    const Usuario(
-      id: 6,
-      nome: 'Suporte Laboratorio',
-      email: 'suporte@uab.edu',
-      perfil: 'Atendente',
-    ),
-  ];
-
   Future<List<Usuario>> listarTodos() async {
     await _exigirAdministrador();
-    return List<Usuario>.unmodifiable(_usuarios);
+    return List<Usuario>.unmodifiable(AuthRepository.usuariosLocais);
   }
 
   Future<List<Usuario>> listarAtendentes() async {
     await _exigirAdministrador();
 
-    return _usuarios
+    return AuthRepository.usuariosLocais
         .where((usuario) => usuario.perfil.toLowerCase() == 'atendente')
         .toList();
+  }
+
+  Future<Usuario> criarUsuario({
+    required String nome,
+    required String email,
+    required String senha,
+    required String perfil,
+  }) async {
+    await _exigirAdministrador();
+    final emailNormalizado = email.toLowerCase();
+
+    if (AuthRepository.existeUsuario(emailNormalizado)) {
+      throw const ApiException(
+        statusCode: 409,
+        message: 'Ja existe usuario com este e-mail.',
+      );
+    }
+
+    final usuario = Usuario(
+      id: AuthRepository.proximoUsuarioId(),
+      nome: nome,
+      email: emailNormalizado,
+      perfil: perfil,
+    );
+
+    AuthRepository.cadastrarUsuarioLocal(usuario);
+    await _authRepository.definirSenhaUsuario(
+      email: usuario.email,
+      novaSenha: senha,
+    );
+
+    return usuario;
   }
 
   Future<Usuario> criarAtendente({
     required String nome,
     required String email,
     required String senha,
-  }) async {
-    await _exigirAdministrador();
-    final usuario = Usuario(
-      id: _proximoId(),
+  }) {
+    return criarUsuario(
       nome: nome,
       email: email,
+      senha: senha,
       perfil: 'Atendente',
     );
-
-    _usuarios.add(usuario);
-    return usuario;
   }
 
   Future<Usuario> atualizarAtendente({
@@ -82,26 +71,71 @@ class UsuarioRepository {
     required String nome,
     required String email,
   }) async {
-    await _exigirAdministrador();
-    final index = _usuarios.indexWhere((usuario) => usuario.id == id);
-    if (index == -1) {
-      throw const ApiException(message: 'Usuario nao encontrado.');
-    }
-
-    final usuario = Usuario(
+    return atualizarUsuario(
       id: id,
       nome: nome,
       email: email,
       perfil: 'Atendente',
     );
+  }
 
-    _usuarios[index] = usuario;
+  Future<Usuario> atualizarUsuario({
+    required int id,
+    required String nome,
+    required String email,
+    required String perfil,
+  }) async {
+    await _exigirAdministrador();
+    Usuario? usuarioAtual;
+    for (final usuario in AuthRepository.usuariosLocais) {
+      if (usuario.id == id) {
+        usuarioAtual = usuario;
+        break;
+      }
+    }
+
+    if (usuarioAtual == null) {
+      throw const ApiException(message: 'Usuario nao encontrado.');
+    }
+
+    final emailNormalizado = email.toLowerCase();
+    if (emailNormalizado != usuarioAtual.email.toLowerCase() &&
+        AuthRepository.existeUsuario(emailNormalizado)) {
+      throw const ApiException(
+        statusCode: 409,
+        message: 'Ja existe usuario com este e-mail.',
+      );
+    }
+
+    final usuario = Usuario(
+      id: id,
+      nome: nome,
+      email: emailNormalizado,
+      perfil: perfil,
+    );
+
+    AuthRepository.atualizarUsuarioLocal(
+      emailAnterior: usuarioAtual.email,
+      usuario: usuario,
+    );
+
     return usuario;
+  }
+
+  Future<void> alterarSenhaUsuario({
+    required String email,
+    required String novaSenha,
+  }) async {
+    await _exigirAdministrador();
+    await _authRepository.definirSenhaUsuario(
+      email: email,
+      novaSenha: novaSenha,
+    );
   }
 
   Future<void> remover(int id) async {
     await _exigirAdministrador();
-    _usuarios.removeWhere((usuario) => usuario.id == id);
+    AuthRepository.removerUsuarioLocal(id);
   }
 
   Future<void> _exigirAdministrador() async {
@@ -112,15 +146,5 @@ class UsuarioRepository {
         message: 'Acesso nao autorizado.',
       );
     }
-  }
-
-  int _proximoId() {
-    if (_usuarios.isEmpty) {
-      return 1;
-    }
-    return _usuarios
-            .map((usuario) => usuario.id)
-            .reduce((maior, id) => id > maior ? id : maior) +
-        1;
   }
 }
