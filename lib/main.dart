@@ -5,7 +5,9 @@ import 'screens/dashboard_screen.dart';
 import 'screens/detalhe_solicitacao_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/nova_solicitacao_screen.dart';
+import 'screens/relatorios_screen.dart';
 import 'screens/solicitacoes_screen.dart';
+import 'screens/usuarios_screen.dart';
 
 void main() {
   runApp(const GestaoEmprestimosApp());
@@ -33,6 +35,8 @@ class GestaoEmprestimosApp extends StatelessWidget {
             const NovaSolicitacaoScreen(),
         DetalheSolicitacaoScreen.routeName: (context) =>
             const DetalheSolicitacaoScreen(),
+        RelatoriosScreen.routeName: (context) => const RelatoriosScreen(),
+        UsuariosScreen.routeName: (context) => const UsuariosScreen(),
       },
     );
   }

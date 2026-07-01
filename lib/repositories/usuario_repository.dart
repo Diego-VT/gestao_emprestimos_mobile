@@ -47,6 +47,11 @@ class UsuarioRepository {
     ),
   ];
 
+  Future<List<Usuario>> listarTodos() async {
+    await _exigirAdministrador();
+    return List<Usuario>.unmodifiable(_usuarios);
+  }
+
   Future<List<Usuario>> listarAtendentes() async {
     await _exigirAdministrador();
 

@@ -62,6 +62,29 @@ A aplicação Mobile será desenvolvida utilizando:
 - Visual Studio Code;
 - Consumo de API REST fornecida pelo backend Flask.
 
+## Acesso de Teste no Aplicativo Mobile
+
+No momento, o aplicativo mobile possui uma base local para uso offline,
+sem depender da API. Todos os usuários abaixo usam a mesma senha:
+
+```text
+123456
+```
+
+Usuários disponíveis:
+
+| Perfil | E-mail | Senha |
+| --- | --- | --- |
+| Cliente | cliente@uab.edu | 123456 |
+| Cliente | maria@uab.edu | 123456 |
+| Cliente | joao@uab.edu | 123456 |
+| Atendente | atendente@uab.edu | 123456 |
+| Atendente | suporte@uab.edu | 123456 |
+| Administrador | admin@uab.edu | 123456 |
+
+O modo offline também possui equipamentos cadastrados localmente para criar
+solicitações de empréstimo pelo aplicativo.
+
 ## Perfis de Usuário
 
 O sistema contará com três perfis principais:

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../repositories/auth_repository.dart';
 import 'login_screen.dart';
 import 'nova_solicitacao_screen.dart';
+import 'relatorios_screen.dart';
 import 'solicitacoes_screen.dart';
+import 'usuarios_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -32,38 +34,27 @@ class DashboardScreen extends StatelessWidget {
           _MenuItem(
             titulo: 'Solicitacoes',
             icone: Icons.assignment_outlined,
-            onTap: () => Navigator.pushNamed(
-              context,
-              SolicitacoesScreen.routeName,
-            ),
+            onTap: () =>
+                Navigator.pushNamed(context, SolicitacoesScreen.routeName),
           ),
           _MenuItem(
             titulo: 'Nova Solicitacao',
             icone: Icons.add_box_outlined,
-            onTap: () => Navigator.pushNamed(
-              context,
-              NovaSolicitacaoScreen.routeName,
-            ),
+            onTap: () =>
+                Navigator.pushNamed(context, NovaSolicitacaoScreen.routeName),
           ),
           _MenuItem(
             titulo: 'Relatorios',
             icone: Icons.bar_chart_outlined,
-            onTap: () => _mostrarRecursoFuturo(context),
+            onTap: () =>
+                Navigator.pushNamed(context, RelatoriosScreen.routeName),
           ),
           _MenuItem(
             titulo: 'Usuarios',
             icone: Icons.people_outline,
-            onTap: () => _mostrarRecursoFuturo(context),
+            onTap: () => Navigator.pushNamed(context, UsuariosScreen.routeName),
           ),
         ],
-      ),
-    );
-  }
-
-  void _mostrarRecursoFuturo(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Funcionalidade preparada para proxima etapa.'),
       ),
     );
   }
