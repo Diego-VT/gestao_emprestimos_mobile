@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/utils/api_exception.dart';
 import '../core/utils/input_validators.dart';
+import '../models/equipamento.dart';
+import '../repositories/equipamento_repository.dart';
 import '../repositories/solicitacao_repository.dart';
 
 class NovaSolicitacaoScreen extends StatefulWidget {
@@ -15,15 +17,22 @@ class NovaSolicitacaoScreen extends StatefulWidget {
 
 class _NovaSolicitacaoScreenState extends State<NovaSolicitacaoScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _equipamentoController = TextEditingController();
   final _justificativaController = TextEditingController();
+  final _equipamentoRepository = EquipamentoRepository();
   final _solicitacaoRepository = SolicitacaoRepository();
 
+  late Future<List<Equipamento>> _equipamentosFuture;
+  String? _equipamentoSelecionado;
   bool _enviando = false;
 
   @override
+  void initState() {
+    super.initState();
+    _equipamentosFuture = _equipamentoRepository.listarDisponiveis();
+  }
+
+  @override
   void dispose() {
-    _equipamentoController.dispose();
     _justificativaController.dispose();
     super.dispose();
   }
@@ -37,7 +46,7 @@ class _NovaSolicitacaoScreenState extends State<NovaSolicitacaoScreen> {
 
     try {
       await _solicitacaoRepository.criar(
-        equipamento: _equipamentoController.text.trim(),
+        equipamento: _equipamentoSelecionado!,
         justificativa: _justificativaController.text.trim(),
       );
 
@@ -54,9 +63,9 @@ class _NovaSolicitacaoScreenState extends State<NovaSolicitacaoScreen> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_mensagemEnvio(erro))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(_mensagemEnvio(erro))));
     } finally {
       if (mounted) {
         setState(() => _enviando = false);
@@ -75,18 +84,46 @@ class _NovaSolicitacaoScreenState extends State<NovaSolicitacaoScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
-                controller: _equipamentoController,
-                decoration: const InputDecoration(
-                  labelText: 'Equipamento',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.computer),
-                ),
-                validator: (value) => InputValidators.textoObrigatorio(
-                  value,
-                  nomeCampo: 'o equipamento',
-                  maxLength: 120,
-                ),
+              FutureBuilder<List<Equipamento>>(
+                future: _equipamentosFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final equipamentos = snapshot.data ?? [];
+
+                  return DropdownButtonFormField<String>(
+                    initialValue: _equipamentoSelecionado,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Equipamento',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.computer),
+                    ),
+                    items: equipamentos
+                        .map(
+                          (equipamento) => DropdownMenuItem(
+                            value: equipamento.nome,
+                            child: Text(
+                              '${equipamento.nome} - ${equipamento.categoria}',
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: _enviando
+                        ? null
+                        : (value) {
+                            setState(() => _equipamentoSelecionado = value);
+                          },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Selecione o equipamento.';
+                      }
+                      return null;
+                    },
+                  );
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(

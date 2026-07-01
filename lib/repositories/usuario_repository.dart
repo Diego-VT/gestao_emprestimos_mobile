@@ -10,6 +10,12 @@ class UsuarioRepository {
 
   static final List<Usuario> _usuarios = [
     const Usuario(
+      id: 1,
+      nome: 'Cliente UAB',
+      email: 'cliente@uab.edu',
+      perfil: 'Cliente',
+    ),
+    const Usuario(
       id: 2,
       nome: 'Atendente UAB',
       email: 'atendente@uab.edu',
@@ -20,6 +26,24 @@ class UsuarioRepository {
       nome: 'Administrador UAB',
       email: 'admin@uab.edu',
       perfil: 'Administrador',
+    ),
+    const Usuario(
+      id: 4,
+      nome: 'Maria Souza',
+      email: 'maria@uab.edu',
+      perfil: 'Cliente',
+    ),
+    const Usuario(
+      id: 5,
+      nome: 'Joao Pereira',
+      email: 'joao@uab.edu',
+      perfil: 'Cliente',
+    ),
+    const Usuario(
+      id: 6,
+      nome: 'Suporte Laboratorio',
+      email: 'suporte@uab.edu',
+      perfil: 'Atendente',
     ),
   ];
 

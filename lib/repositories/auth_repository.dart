@@ -15,10 +15,28 @@ class AuthRepository {
       email: 'cliente@uab.edu',
       perfil: 'Cliente',
     ),
+    'maria@uab.edu': Usuario(
+      id: 4,
+      nome: 'Maria Souza',
+      email: 'maria@uab.edu',
+      perfil: 'Cliente',
+    ),
+    'joao@uab.edu': Usuario(
+      id: 5,
+      nome: 'Joao Pereira',
+      email: 'joao@uab.edu',
+      perfil: 'Cliente',
+    ),
     'atendente@uab.edu': Usuario(
       id: 2,
       nome: 'Atendente UAB',
       email: 'atendente@uab.edu',
+      perfil: 'Atendente',
+    ),
+    'suporte@uab.edu': Usuario(
+      id: 6,
+      nome: 'Suporte Laboratorio',
+      email: 'suporte@uab.edu',
       perfil: 'Atendente',
     ),
     'admin@uab.edu': Usuario(
