@@ -11,5 +11,5 @@ class Equipamento {
   final String categoria;
   final String status;
 
-  bool get disponivel => status.toLowerCase() == 'disponivel';
+  bool get disponivel => status.toLowerCase().startsWith('dispon');
 }

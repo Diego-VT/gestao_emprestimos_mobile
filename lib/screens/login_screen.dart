@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_colors.dart';
 import '../core/utils/api_exception.dart';
 import '../core/utils/input_validators.dart';
 import '../repositories/auth_repository.dart';
@@ -84,13 +85,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const azulCorporativo = Color(0xFF0F2A44);
-    const fundoTela = Color(0xFFF4F7FB);
-    const bordaCampo = Color(0xFFD7E0EA);
-    const textoSecundario = Color(0xFF607086);
-
     return Scaffold(
-      backgroundColor: fundoTela,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -102,12 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 440),
                   child: Card(
-                    color: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(color: Color(0xFFE4EAF2)),
-                    ),
                     child: Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: compacto ? 20 : 28,
@@ -120,27 +110,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Center(
-                              child: Container(
-                                width: compacto ? 64 : 72,
-                                height: compacto ? 64 : 72,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEAF1F8),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  Icons.devices_other,
-                                  size: compacto ? 34 : 38,
-                                  color: azulCorporativo,
-                                ),
-                              ),
+                              child: _DeviceMark(size: compacto ? 72 : 80),
                             ),
                             const SizedBox(height: 20),
                             Text(
-                              'Gestao de Emprestimos',
+                              'Gestão de Empréstimos',
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.headlineSmall
                                   ?.copyWith(
-                                    color: azulCorporativo,
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w700,
                                   ),
                             ),
@@ -149,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               'Equipamentos de TI',
                               textAlign: TextAlign.center,
                               style: Theme.of(context).textTheme.bodyLarge
-                                  ?.copyWith(color: textoSecundario),
+                                  ?.copyWith(color: AppColors.textSecondary),
                             ),
                             const SizedBox(height: 32),
                             TextFormField(
@@ -158,21 +136,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               textInputAction: TextInputAction.next,
                               decoration: const InputDecoration(
                                 labelText: 'E-mail',
-                                filled: true,
-                                fillColor: Colors.white,
-                                prefixIconColor: textoSecundario,
+                                prefixIconColor: AppColors.textSecondary,
                                 prefixIcon: Icon(Icons.email_outlined),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: bordaCampo),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: azulCorporativo,
-                                    width: 1.4,
-                                  ),
-                                ),
-                                errorBorder: OutlineInputBorder(),
-                                focusedErrorBorder: OutlineInputBorder(),
                               ),
                               validator: InputValidators.email,
                             ),
@@ -184,21 +149,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               onFieldSubmitted: (_) => _entrar(),
                               decoration: InputDecoration(
                                 labelText: 'Senha',
-                                filled: true,
-                                fillColor: Colors.white,
-                                prefixIconColor: textoSecundario,
+                                prefixIconColor: AppColors.textSecondary,
                                 prefixIcon: const Icon(Icons.lock_outline),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(color: bordaCampo),
-                                ),
-                                focusedBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: azulCorporativo,
-                                    width: 1.4,
-                                  ),
-                                ),
-                                errorBorder: const OutlineInputBorder(),
-                                focusedErrorBorder: const OutlineInputBorder(),
                                 suffixIcon: IconButton(
                                   tooltip: _senhaVisivel
                                       ? 'Ocultar senha'
@@ -212,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _senhaVisivel
                                         ? Icons.visibility_off_outlined
                                         : Icons.visibility_outlined,
-                                    color: textoSecundario,
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ),
@@ -225,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ? null
                                     : _abrirEsqueceuSenha,
                                 style: TextButton.styleFrom(
-                                  foregroundColor: azulCorporativo,
+                                  foregroundColor: AppColors.primary,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 0,
                                   ),
@@ -239,9 +191,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: FilledButton.icon(
                                 onPressed: _carregando ? null : _entrar,
                                 style: FilledButton.styleFrom(
-                                  backgroundColor: azulCorporativo,
+                                  backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
-                                  disabledBackgroundColor: azulCorporativo
+                                  disabledBackgroundColor: AppColors.primary
                                       .withValues(alpha: 0.45),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
@@ -276,9 +228,69 @@ class _LoginScreenState extends State<LoginScreen> {
 
   String _mensagemLogin(ApiException erro) {
     if (erro.statusCode == 401 || erro.statusCode == 403) {
-      return 'E-mail ou senha invalidos.';
+      return 'E-mail ou senha inválidos.';
     }
-    return 'Nao foi possivel entrar. Tente novamente.';
+    return 'Não foi possível entrar. Tente novamente.';
+  }
+}
+
+class _DeviceMark extends StatelessWidget {
+  const _DeviceMark({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: AppColors.analysisSoft,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: size * 0.15,
+            top: size * 0.24,
+            child: Container(
+              width: size * 0.52,
+              height: size * 0.34,
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.primary, width: 2),
+                borderRadius: BorderRadius.circular(5),
+              ),
+            ),
+          ),
+          Positioned(
+            left: size * 0.11,
+            top: size * 0.60,
+            child: Container(
+              width: size * 0.60,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ),
+          Positioned(
+            right: size * 0.16,
+            top: size * 0.30,
+            child: Container(
+              width: size * 0.25,
+              height: size * 0.42,
+              decoration: BoxDecoration(
+                color: AppColors.analysisSoft,
+                border: Border.all(color: AppColors.primary, width: 2),
+                borderRadius: BorderRadius.circular(6),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -400,7 +412,7 @@ class _EsqueceuSenhaDialogState extends State<_EsqueceuSenhaDialog> {
                       return erro;
                     }
                     if (value != _novaSenhaController.text) {
-                      return 'As senhas nao conferem.';
+                      return 'As senhas não conferem.';
                     }
                     return null;
                   },
@@ -431,9 +443,9 @@ class _EsqueceuSenhaDialogState extends State<_EsqueceuSenhaDialog> {
 
   String _mensagemErro(ApiException erro) {
     if (erro.statusCode == 404) {
-      return 'Usuario nao encontrado.';
+      return 'Usuário não encontrado.';
     }
-    return 'Nao foi possivel redefinir a senha.';
+    return 'Não foi possível redefinir a senha.';
   }
 }
 

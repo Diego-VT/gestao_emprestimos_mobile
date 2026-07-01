@@ -15,7 +15,7 @@ class SolicitacaoRepository {
       solicitante: 'Cliente UAB',
       status: 'Pendente',
       dataSolicitacao: DateTime(2026, 6, 28),
-      justificativa: 'Uso em apresentacao de trabalho academico.',
+      justificativa: 'Uso em apresentação de trabalho acadêmico.',
     ),
     Solicitacao(
       id: 2,
@@ -23,31 +23,31 @@ class SolicitacaoRepository {
       solicitante: 'Maria Souza',
       status: 'Aprovada',
       dataSolicitacao: DateTime(2026, 6, 25),
-      justificativa: 'Apoio para aula pratica em laboratorio.',
+      justificativa: 'Apoio para aula prática em laboratório.',
     ),
     Solicitacao(
       id: 3,
       equipamento: 'Tablet Samsung Galaxy Tab',
-      solicitante: 'Joao Pereira',
-      status: 'Em analise',
+      solicitante: 'João Pereira',
+      status: 'Em análise',
       dataSolicitacao: DateTime(2026, 6, 20),
-      justificativa: 'Registro de presenca em evento institucional.',
+      justificativa: 'Registro de presença em evento institucional.',
     ),
     Solicitacao(
       id: 4,
-      equipamento: 'Camera Logitech C920',
-      solicitante: 'Suporte Laboratorio',
+      equipamento: 'Câmera Logitech C920',
+      solicitante: 'Suporte Laboratório',
       status: 'Pendente',
       dataSolicitacao: DateTime(2026, 6, 18),
-      justificativa: 'Gravacao de treinamento interno.',
+      justificativa: 'Gravação de treinamento interno.',
     ),
     Solicitacao(
       id: 5,
       equipamento: 'Kit Adaptadores HDMI/USB-C',
       solicitante: 'Cliente UAB',
-      status: 'Concluida',
+      status: 'Concluída',
       dataSolicitacao: DateTime(2026, 6, 12),
-      justificativa: 'Conexao de notebook em sala de reuniao.',
+      justificativa: 'Conexão de notebook em sala de reunião.',
     ),
   ];
 
@@ -59,7 +59,7 @@ class SolicitacaoRepository {
     try {
       return _solicitacoes.firstWhere((solicitacao) => solicitacao.id == id);
     } on StateError {
-      throw const ApiException(message: 'Solicitacao nao encontrada.');
+      throw const ApiException(message: 'Solicitação não encontrada.');
     }
   }
 
@@ -71,7 +71,7 @@ class SolicitacaoRepository {
     final solicitacao = Solicitacao(
       id: _proximoId(),
       equipamento: equipamento,
-      solicitante: usuario?.nome ?? 'Usuario local',
+      solicitante: usuario?.nome ?? 'Usuário local',
       status: 'Pendente',
       dataSolicitacao: DateTime.now(),
       justificativa: justificativa,
