@@ -1,11 +1,17 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../core/utils/api_exception.dart';
 import '../models/usuario.dart';
 import '../services/token_storage_service.dart';
 
 class AuthRepository {
-  AuthRepository({TokenStorageService? tokenStorageService})
-    : _tokenStorageService = tokenStorageService ?? TokenStorageService();
+  AuthRepository({
+    FlutterSecureStorage? secureStorage,
+    TokenStorageService? tokenStorageService,
+  }) : _secureStorage = secureStorage ?? const FlutterSecureStorage(),
+       _tokenStorageService = tokenStorageService ?? TokenStorageService();
 
+  final FlutterSecureStorage _secureStorage;
   final TokenStorageService _tokenStorageService;
 
   static const _usuarios = <String, Usuario>{
@@ -48,8 +54,11 @@ class AuthRepository {
   };
 
   Future<Usuario> login({required String email, required String senha}) async {
-    final usuario = _usuarios[email.toLowerCase()];
-    if (usuario == null || senha != '123456') {
+    final emailNormalizado = email.toLowerCase();
+    final usuario = _usuarios[emailNormalizado];
+    final senhaAtual = await _senhaUsuario(emailNormalizado);
+
+    if (usuario == null || senha != senhaAtual) {
       throw const ApiException(
         statusCode: 401,
         message: 'E-mail ou senha invalidos.',
@@ -64,6 +73,33 @@ class AuthRepository {
     return usuario;
   }
 
+  Future<void> alterarSenha({
+    required String email,
+    required String senhaAtual,
+    required String novaSenha,
+  }) async {
+    final emailNormalizado = email.toLowerCase();
+    if (!_usuarios.containsKey(emailNormalizado)) {
+      throw const ApiException(
+        statusCode: 404,
+        message: 'Usuario nao encontrado.',
+      );
+    }
+
+    final senhaCadastrada = await _senhaUsuario(emailNormalizado);
+    if (senhaAtual != senhaCadastrada) {
+      throw const ApiException(
+        statusCode: 401,
+        message: 'Senha atual invalida.',
+      );
+    }
+
+    await _secureStorage.write(
+      key: _senhaKey(emailNormalizado),
+      value: novaSenha,
+    );
+  }
+
   Future<bool> existeSessao() {
     return _tokenStorageService.existeSessao();
   }
@@ -75,4 +111,10 @@ class AuthRepository {
   Future<void> logout() {
     return _tokenStorageService.limparSessao();
   }
+
+  Future<String> _senhaUsuario(String email) async {
+    return await _secureStorage.read(key: _senhaKey(email)) ?? '123456';
+  }
+
+  String _senhaKey(String email) => 'senha_local_$email';
 }
