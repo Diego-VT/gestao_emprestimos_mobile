@@ -49,26 +49,18 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
             );
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: usuarios.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final usuario = usuarios[index];
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text(usuario.nome.substring(0, 1).toUpperCase()),
-                  ),
-                  title: Text(usuario.nome),
-                  subtitle: Text(usuario.email),
-                  trailing: Chip(label: Text(usuario.perfil)),
-                ),
-              );
-            },
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 840),
+              child: ListView.separated(
+                padding: const EdgeInsets.all(12),
+                itemCount: usuarios.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  return _UsuarioCard(usuario: usuarios[index]);
+                },
+              ),
+            ),
           );
         },
       ),
@@ -83,6 +75,72 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
       return error.message;
     }
     return 'Nao foi possivel carregar os usuarios.';
+  }
+}
+
+class _UsuarioCard extends StatelessWidget {
+  const _UsuarioCard({required this.usuario});
+
+  final Usuario usuario;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compacto = constraints.maxWidth < 420;
+
+        return Card(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            leading: CircleAvatar(
+              child: Text(usuario.nome.substring(0, 1).toUpperCase()),
+            ),
+            title: Text(
+              usuario.nome,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: compacto
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          usuario.email,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        _PerfilChip(perfil: usuario.perfil),
+                      ],
+                    )
+                  : Text(
+                      usuario.email,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+            ),
+            trailing: compacto ? null : _PerfilChip(perfil: usuario.perfil),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PerfilChip extends StatelessWidget {
+  const _PerfilChip({required this.perfil});
+
+  final String perfil;
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(visualDensity: VisualDensity.compact, label: Text(perfil));
   }
 }
 

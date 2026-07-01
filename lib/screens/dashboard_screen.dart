@@ -25,36 +25,60 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: GridView.count(
-        padding: const EdgeInsets.all(16),
-        crossAxisCount: MediaQuery.sizeOf(context).width >= 720 ? 4 : 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        children: [
-          _MenuItem(
-            titulo: 'Solicitacoes',
-            icone: Icons.assignment_outlined,
-            onTap: () =>
-                Navigator.pushNamed(context, SolicitacoesScreen.routeName),
-          ),
-          _MenuItem(
-            titulo: 'Nova Solicitacao',
-            icone: Icons.add_box_outlined,
-            onTap: () =>
-                Navigator.pushNamed(context, NovaSolicitacaoScreen.routeName),
-          ),
-          _MenuItem(
-            titulo: 'Relatorios',
-            icone: Icons.bar_chart_outlined,
-            onTap: () =>
-                Navigator.pushNamed(context, RelatoriosScreen.routeName),
-          ),
-          _MenuItem(
-            titulo: 'Usuarios',
-            icone: Icons.people_outline,
-            onTap: () => Navigator.pushNamed(context, UsuariosScreen.routeName),
-          ),
-        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final largura = constraints.maxWidth;
+          final colunas = largura >= 1000
+              ? 4
+              : largura >= 640
+              ? 3
+              : 2;
+
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1100),
+              child: GridView.count(
+                padding: const EdgeInsets.all(16),
+                crossAxisCount: colunas,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: largura >= 640 ? 1.25 : 1.05,
+                children: [
+                  _MenuItem(
+                    titulo: 'Solicitacoes',
+                    icone: Icons.assignment_outlined,
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      SolicitacoesScreen.routeName,
+                    ),
+                  ),
+                  _MenuItem(
+                    titulo: 'Nova Solicitacao',
+                    icone: Icons.add_box_outlined,
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      NovaSolicitacaoScreen.routeName,
+                    ),
+                  ),
+                  _MenuItem(
+                    titulo: 'Relatorios',
+                    icone: Icons.bar_chart_outlined,
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      RelatoriosScreen.routeName,
+                    ),
+                  ),
+                  _MenuItem(
+                    titulo: 'Usuarios',
+                    icone: Icons.people_outline,
+                    onTap: () =>
+                        Navigator.pushNamed(context, UsuariosScreen.routeName),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -102,6 +126,8 @@ class _MenuItem extends StatelessWidget {
               Text(
                 titulo,
                 textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ],

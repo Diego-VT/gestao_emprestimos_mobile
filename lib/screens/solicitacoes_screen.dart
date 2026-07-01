@@ -52,32 +52,51 @@ class _SolicitacoesScreenState extends State<SolicitacoesScreen> {
             return const Center(child: Text('Nenhuma solicitacao encontrada.'));
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(12),
-            itemCount: solicitacoes.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final solicitacao = solicitacoes[index];
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 840),
+              child: ListView.separated(
+                padding: const EdgeInsets.all(12),
+                itemCount: solicitacoes.length,
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final solicitacao = solicitacoes[index];
 
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text(solicitacao.numero),
-                  ),
-                  title: Text(solicitacao.equipamento),
-                  subtitle: Text(_formatarData(solicitacao.dataSolicitacao)),
-                  trailing: Chip(label: Text(solicitacao.status)),
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    DetalheSolicitacaoScreen.routeName,
-                    arguments: solicitacao.id,
-                  ),
-                ),
-              );
-            },
+                  return Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      leading: CircleAvatar(child: Text(solicitacao.numero)),
+                      title: Text(
+                        solicitacao.equipamento,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        '${solicitacao.solicitante} - '
+                        '${_formatarData(solicitacao.dataSolicitacao)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: Chip(
+                        visualDensity: VisualDensity.compact,
+                        label: Text(solicitacao.status),
+                      ),
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        DetalheSolicitacaoScreen.routeName,
+                        arguments: solicitacao.id,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           );
         },
       ),
@@ -117,10 +136,7 @@ class _ErroCarregamento extends StatelessWidget {
           children: [
             const Icon(Icons.cloud_off_outlined, size: 48),
             const SizedBox(height: 12),
-            Text(
-              mensagem,
-              textAlign: TextAlign.center,
-            ),
+            Text(mensagem, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: onTentarNovamente,

@@ -61,17 +61,41 @@ class _RelatoriosScreenState extends State<RelatoriosScreen> {
             );
           }
 
-          return ListView(
-            padding: const EdgeInsets.all(12),
-            children: [
-              _ResumoGrid(dados: dados),
-              const SizedBox(height: 12),
-              _SecaoStatus(dados: dados),
-              const SizedBox(height: 12),
-              _SecaoEquipamentos(dados: dados),
-              const SizedBox(height: 12),
-              _SecaoUsuarios(dados: dados),
-            ],
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1100),
+              child: ListView(
+                padding: const EdgeInsets.all(12),
+                children: [
+                  _ResumoGrid(dados: dados),
+                  const SizedBox(height: 12),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (constraints.maxWidth >= 760) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: _SecaoStatus(dados: dados)),
+                            const SizedBox(width: 12),
+                            Expanded(child: _SecaoEquipamentos(dados: dados)),
+                          ],
+                        );
+                      }
+
+                      return Column(
+                        children: [
+                          _SecaoStatus(dados: dados),
+                          const SizedBox(height: 12),
+                          _SecaoEquipamentos(dados: dados),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _SecaoUsuarios(dados: dados),
+                ],
+              ),
+            ),
           );
         },
       ),
@@ -86,16 +110,13 @@ class _ResumoGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final largura = MediaQuery.sizeOf(context).width;
-    final colunas = largura >= 720 ? 4 : 2;
-
-    return GridView.count(
-      crossAxisCount: colunas,
+    return GridView.extent(
+      maxCrossAxisExtent: 240,
       crossAxisSpacing: 8,
       mainAxisSpacing: 8,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: largura >= 720 ? 2.2 : 1.55,
+      childAspectRatio: 1.45,
       children: [
         _IndicadorCard(
           titulo: 'Solicitacoes',
@@ -139,7 +160,7 @@ class _SecaoStatus extends StatelessWidget {
         return _LinhaRelatorio(
           titulo: entry.key,
           valor: entry.value.toString(),
-          percentual: entry.value / dados.solicitacoes.length,
+          percentual: dados.percentual(entry.value, dados.solicitacoes.length),
         );
       }).toList(),
     );
@@ -163,14 +184,15 @@ class _SecaoEquipamentos extends StatelessWidget {
         _LinhaRelatorio(
           titulo: 'Disponiveis',
           valor: disponiveis.toString(),
-          percentual: disponiveis / dados.equipamentos.length,
+          percentual: dados.percentual(disponiveis, dados.equipamentos.length),
         ),
         _LinhaRelatorio(
           titulo: 'Em manutencao',
           valor: (dados.equipamentos.length - disponiveis).toString(),
-          percentual:
-              (dados.equipamentos.length - disponiveis) /
-              dados.equipamentos.length,
+          percentual: dados.percentual(
+            dados.equipamentos.length - disponiveis,
+            dados.equipamentos.length,
+          ),
         ),
       ],
     );
@@ -204,7 +226,7 @@ class _SecaoUsuarios extends StatelessWidget {
         return _LinhaRelatorio(
           titulo: entry.key,
           valor: entry.value.toString(),
-          percentual: entry.value / dados.usuarios.length,
+          percentual: dados.percentual(entry.value, dados.usuarios.length),
         );
       }).toList(),
     );
@@ -261,6 +283,8 @@ class _IndicadorCard extends StatelessWidget {
             Text(
               titulo,
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
@@ -284,7 +308,7 @@ class _LinhaRelatorio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(titulo),
+      title: Text(titulo, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: LinearProgressIndicator(value: percentual.clamp(0, 1)),
       trailing: Text(valor),
     );
@@ -309,6 +333,13 @@ class _RelatorioDados {
               solicitacao.status.toLowerCase() == status.toLowerCase(),
         )
         .length;
+  }
+
+  double percentual(int valor, int total) {
+    if (total == 0) {
+      return 0;
+    }
+    return valor / total;
   }
 
   List<MapEntry<String, int>> get statusOrdenados {
